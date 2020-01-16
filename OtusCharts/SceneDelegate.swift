@@ -21,13 +21,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Create the SwiftUI view that provides the window contents.
         let contentView = ContentView()
+            .environmentObject(ChartsViewModel())
 
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
             window.rootViewController = UIHostingController(rootView: contentView)
             self.window = window
+            App.instance.mainWindow = window
             window.makeKeyAndVisible()
+            
+            App.instance.overlayWindow = UIWindow(windowScene: windowScene)
+            
+            let view = ContentViewOverlay()
+                .environmentObject(ChartsViewModel())
+            
+            App.instance.overlayWindow?.rootViewController = UIHostingController(rootView: view)
+            App.instance.overlayWindow?.windowLevel = UIWindow.Level.alert + 1
+            App.instance.overlayWindow?.makeKeyAndVisible()
         }
     }
 
