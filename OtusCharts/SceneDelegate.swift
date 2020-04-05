@@ -23,10 +23,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
 
         let apiServiceLocator =  ApiServiceLocator()
-        let newsApi = FullTotalCountDownloader<NewsApi>(titles: ["Apple", "bitcoin", "nginx"])
         let githubApi = FullTotalCountDownloader<GitHubApi>(titles: ["language:ObjC", "language:Swift", "language:kotlin"])
         
-        apiServiceLocator.addService(service: newsApi)
         apiServiceLocator.addService(service: githubApi)
         
         // Create the SwiftUI view that provides the window contents.

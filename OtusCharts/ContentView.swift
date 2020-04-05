@@ -8,12 +8,14 @@
 
 import SwiftUI
 import SwiftUICharts
+import Combine
 
 import OtusNewsApi
 import OtusGithubAPI
 
 final class ChartsViewModel: ObservableObject {
-    private let newsDownloader: FullTotalCountDownloader<NewsApi>
+    private var subscriptions = Set<AnyCancellable>()
+    
     private let githubDownloader: FullTotalCountDownloader<GitHubApi>
 
     @Published private (set) var chartsData: [[Double]] = [[], [], []]
@@ -22,9 +24,7 @@ final class ChartsViewModel: ObservableObject {
     @Published var selectedChart: Int = 0
     
     init(apiServiceLocator: ServiceLocating) {
-        newsDownloader = apiServiceLocator.getService()!
         githubDownloader = apiServiceLocator.getService()!
-        
         loadAllDataForCharts()
     }
     
@@ -35,12 +35,23 @@ final class ChartsViewModel: ObservableObject {
     
     private func loadAllDataForCharts() {
         self.isLoaded = false
+
+        let newsApplePromise = NewsApi.getTotalCount(title: "Apple")
+        let newsBitcoinPromise = NewsApi.getTotalCount(title: "bitcoin")
+        let newsNginxPromise = NewsApi.getTotalCount(title: "nginx")
         
-        newsDownloader.requestTotalCounts { titleCountDictionary in
-            self.chartsData[0] = titleCountDictionary.map{$1}
-            self.isLoaded = self.isFullDataChartsLoaded()
+        Publishers.Zip3(newsApplePromise,newsBitcoinPromise, newsNginxPromise)
+            .receive(on: RunLoop.main)
+            .sink { result in
+                let tupleMirror = Mirror(reflecting: result)
+                let elements = tupleMirror.children.map({$0.value as! Double})
+                self.chartsData[0] = elements
+                self.chartsData[1] = elements
+                self.isLoaded = true
         }
-        newsDownloader.requestTotalCounts { titleCountDictionary in
+        .store(in: &self.subscriptions)
+        
+        githubDownloader.requestTotalCounts { titleCountDictionary in
             self.chartsData[1] = titleCountDictionary.map{$1}
             self.isLoaded = self.isFullDataChartsLoaded()
         }
