@@ -15,7 +15,10 @@ protocol TotalCountProtocol {
     static func getTotalCount(title: String, callback: @escaping (Double)->Void)
 }
 
-extension SearchAPI: TotalCountProtocol {
+protocol NewsApiProtocol: TotalCountProtocol {}
+protocol GitHubApiProtocol: TotalCountProtocol {}
+
+class GitHubApi: GitHubApiProtocol {
     static func getTotalCount(title: String, callback: @escaping (Double)->Void) {
         SearchAPI.searchReposGet(q: title, order: Order.desc) { list, error in
             if let count = list?.totalCount {
@@ -25,14 +28,14 @@ extension SearchAPI: TotalCountProtocol {
     }
 }
 
-extension ArticlesAPI: TotalCountProtocol {
+class NewsApi: NewsApiProtocol {
     static func getTotalCount(title: String, callback: @escaping (Double)->Void) {
-        let currentDate = Date()
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        let stringCurrentDate = formatter.string(from: currentDate)
+        let stringYesterday = formatter.string(from: yesterday)
 
-        ArticlesAPI.everythingGet(q: title, from: stringCurrentDate, sortBy: "publishedAt", apiKey: "fc743db938c646dc9e4be15868526bf7") { list, error in
+        ArticlesAPI.everythingGet(q: title, from: stringYesterday, sortBy: "publishedAt", apiKey: "b8292fe9971a4230902942e9fe51bd9e") { list, error in
             if let count = list?.totalResults {
                 callback(Double(count))
             }

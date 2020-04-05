@@ -13,15 +13,18 @@ import OtusNewsApi
 import OtusGithubAPI
 
 final class ChartsViewModel: ObservableObject {
-    private let newsDownloader = FullTotalCountDownloader<ArticlesAPI>(titles: ["Apple", "bitcoin", "nginx"])
-    private let githubDownloader = FullTotalCountDownloader<SearchAPI>(titles: ["language:ObjC", "language:Swift", "language:kotlin"])
+    private let newsDownloader: FullTotalCountDownloader<NewsApi>
+    private let githubDownloader: FullTotalCountDownloader<GitHubApi>
 
     @Published private (set) var chartsData: [[Double]] = [[], [], []]
     @Published private (set) var isLoaded = false
 
     @Published var selectedChart: Int = 0
     
-    init() {
+    init(apiServiceLocator: ServiceLocating) {
+        newsDownloader = apiServiceLocator.getService()!
+        githubDownloader = apiServiceLocator.getService()!
+        
         loadAllDataForCharts()
     }
     
@@ -86,6 +89,6 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-            .environmentObject(ChartsViewModel())
+            .environmentObject(ChartsViewModel(apiServiceLocator: ApiServiceLocator()))
     }
 }
